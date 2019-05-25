@@ -5,12 +5,40 @@ Description: >
 
   Sample SAM Template for S3UploaderDemo
   
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: s3-upload-demo-s3-bucket
+  DynamoDBTableName:
+    Type: String
+    Default: s3-upload-demo-dynamo-table
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
+  Api:
+    BinaryMediaTypes:
+    - "image~1*"
   Function:
-    Timeout: 3
+    Timeout: 60
+    Environment:
+      Variables:
+        S3_BUCKET: !Ref S3BucketName
+        DYNAMODB_TABLE: !Ref DynamoDBTableName
 
 Resources:
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ""
+      Handler: postS3.handler
+      Runtime: nodejs10.x
+      Events:
+        UploadApi:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
