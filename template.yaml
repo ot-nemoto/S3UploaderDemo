@@ -69,6 +69,30 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+  S3UploadRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: "sts:AssumeRole"
+      Policies:
+      - PolicyName: "upload-function-policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+            - "s3:PutObject"
+            Resource:
+              Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref S3BucketName
+                - "/*"
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
