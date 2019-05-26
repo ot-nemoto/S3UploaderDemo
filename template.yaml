@@ -32,7 +32,7 @@ Resources:
       Handler: postS3.handler
       Runtime: nodejs10.x
       Policies:
-      - AWSLambdaExecute # Managed Policy
+      #- AWSLambdaExecute # Managed Policy
       - Version: '2012-10-17' # Policy Document
         Statement:
         - Effect: Allow
