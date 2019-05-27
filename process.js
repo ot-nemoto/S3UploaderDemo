@@ -3,12 +3,29 @@
 const aws = require('aws-sdk');
 const dynamodb = new aws.DynamoDB({ apiVersion: '2012-08-10' });
 
-exports.handler = async (event, context) => {
-  console.log('Loading function');
-  //console.log('Received event:', JSON.stringify(event, null, 2));
+exports.handler = (event, context) => {
+
+  console.log = console.log.bind(null, '[LOG]');
+  console.info = console.info.bind(null, '[INFO]');
+  console.warn = console.warn.bind(null, '[WARN]');
+  console.error = console.error.bind(null, '[ERROR]');
+
+  console.log(JSON.stringify(event));
+
   for (const record of event.Records) {
-    console.log(record.eventID);
-    console.log(record.eventName);
+    var params = {
+      Key: record.dynamodb.Keys,
+      TableName: process.env.DYNAMODB_TABLE
+    };
+    params.Key["Status"]["S"] = "uploaded";
+
+    dynamodb.getItem(params, function(err, data) {
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        console.log(JSON.stringify(data));
+      }
+    });
     console.log('DynamoDB Record: %j', record.dynamodb);
   }
   return `Successfully processed ${event.Records.length} records.`;

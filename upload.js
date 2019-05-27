@@ -50,10 +50,10 @@ exports.handler = (event, context, callback) => {
         // DynamoDB
         var params = {
           Item: {
-            "id": { S: `${id}` },
-            "status": { S: "uploaded" },
-            "s3-bucket-name": { S: process.env.S3_BUCKET },
-            "s3-key": { S: `${id}.jpg` }
+            "Id": { S: `${id}` },
+            "Status": { S: "uploaded" },
+            "S3BucketName": { S: process.env.S3_BUCKET },
+            "S3Key": { S: `${id}.jpg` }
           },
           ReturnConsumedCapacity: "TOTAL",
           TableName: process.env.DYNAMODB_TABLE

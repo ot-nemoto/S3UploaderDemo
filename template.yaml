@@ -24,6 +24,7 @@ Globals:
     BinaryMediaTypes:
     - "image~1*"
   Function:
+    Runtime: nodejs8.10
     Timeout: 60
     Environment:
       Variables:
@@ -35,7 +36,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: upload.handler
-      Runtime: nodejs10.x
+      #Runtime: nodejs10.x
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -63,7 +64,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: process.handler
-      Runtime: nodejs10.x
+      #Runtime: nodejs10.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:GetItem
+            Resource: !GetAtt DynamoDB.Arn
       Events:
         ProcessStream:
           Type: DynamoDB
@@ -80,11 +88,15 @@ Resources:
     Properties:
       TableName: !Ref DynamoDBTableName
       AttributeDefinitions:
-      - AttributeName: id
+      - AttributeName: Id
+        AttributeType: S
+      - AttributeName: Status
         AttributeType: S
       KeySchema:
-      - AttributeName: id
+      - AttributeName: Id
         KeyType: HASH
+      - AttributeName: Status
+        KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
