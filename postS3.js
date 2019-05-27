@@ -2,6 +2,7 @@
 
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
+const dynamodb = new aws.DynamoDB({ apiVersion: '2012-08-10' });
 
 exports.handler = (event, context, callback) => {
 
@@ -44,6 +45,26 @@ exports.handler = (event, context, callback) => {
 
             } else {
                 console.log('image upload success');
+
+
+                // DynamoDB
+                var params = {
+                  Item: {
+                    "id": {
+                      S: "Somewhat Famous"
+                    }
+                  },
+                  ReturnConsumedCapacity: "TOTAL",
+                  TableName: process.env.DYNAMODB_TABLE
+                };
+                dynamodb.putItem(params, function(err, data) {
+                  if (err) {
+                    console.log(err, err.stack);
+                  } else {
+                    console.log('create item success');
+                  }
+                });
+
 
                 // create response
                 response.statusCode = 200
