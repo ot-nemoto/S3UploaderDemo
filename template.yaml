@@ -12,6 +12,12 @@ Parameters:
   DynamoDBTableName:
     Type: String
     Default: s3-upload-demo-dynamo-table
+  TopicName:
+    Type: String
+    Default: s3-upload-demo-topic
+  SnsSubscriptionEndpoint:
+    Type: String
+    Default: nemoto@opentone.co.jp
 
 Globals:
   Api:
@@ -28,7 +34,7 @@ Resources:
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: postS3.handler
+      Handler: upload.handler
       Runtime: nodejs10.x
       Policies:
         - Version: '2012-10-17'
@@ -53,10 +59,10 @@ Resources:
             Path: /upload
             Method: post
 
-  DequeueFunction:
+  ProcessFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dequeue.handler
+      Handler: process.handler
       Runtime: nodejs10.x
       Events:
         ProcessStream:
@@ -80,10 +86,17 @@ Resources:
       - AttributeName: id
         KeyType: HASH
       ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
+  SnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Ref TopicName
+      Subscription:
+      - Protocol: email
+        Endpoint: !Ref SnsSubscriptionEndpoint
 
 Outputs:
   UploadApi:
