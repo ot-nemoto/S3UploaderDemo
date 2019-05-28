@@ -26,8 +26,12 @@ exports.handler = (event, context) => {
       } else {
         console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
 
-        if (data.Item.Status != "uploaded") return;
+        if (data.Item.Status != "processed") return;
 
+
+
+
+        // Update Status
         var updateParams = {
           TableName: params.TableName,
           Key: params.Key,
@@ -36,7 +40,7 @@ exports.handler = (event, context) => {
             "#status": "Status"
           },
           ExpressionAttributeValues: {
-            ":status": "processed"
+            ":status": "notified"
           },
           ReturnValues:"UPDATED_NEW"
         };

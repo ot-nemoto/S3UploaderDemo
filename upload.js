@@ -2,7 +2,7 @@
 
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
-const dynamodb = new aws.DynamoDB({ apiVersion: '2012-08-10' });
+const docClient = new aws.DynamoDB.DocumentClient();
 
 exports.handler = (event, context, callback) => {
 
@@ -37,10 +37,10 @@ exports.handler = (event, context, callback) => {
         console.error('image upload failed');
 
         // create response
-        response.statusCode = 400
+        response.statusCode = 400;
         response.body = JSON.stringify({
             message: 'fail.'
-        })
+        });
         callback(null, response);
 
       } else {
@@ -49,37 +49,37 @@ exports.handler = (event, context, callback) => {
 
         // DynamoDB
         var params = {
+          TableName: process.env.DYNAMODB_TABLE,
           Item: {
-            "Id": { S: `${id}` },
-            "Status": { S: "uploaded" },
-            "S3BucketName": { S: process.env.S3_BUCKET },
-            "S3Key": { S: `${id}.jpg` }
-          },
-          ReturnConsumedCapacity: "TOTAL",
-          TableName: process.env.DYNAMODB_TABLE
+            "Id": `${id}`,
+            "Status": "uploaded",
+            "S3BucketName": process.env.S3_BUCKET,
+            "S3Key": `${id}.jpg`
+          }
         };
-        dynamodb.putItem(params, function(err, data) {
+        console.log(`params: PutItem: ${JSON.stringify(params)}`);
+        docClient.put(params, function(err, data) {
           if (err) {
-            console.log(err, err.stack);
+            console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
           } else {
-            console.log('create item success');
+            console.log("Added item:", JSON.stringify(data, null, 2));
           }
         });
 
         // create response
-        response.statusCode = 200
+        response.statusCode = 200;
         response.body = JSON.stringify({
             message: 'image has been uploaded to S3'
-        })
+        });
         callback(null, response);
       }
     });
   } else {
     // create response
-    response.statusCode = 400
+    response.statusCode = 400;
     response.body = JSON.stringify({
         message: 'fail.'
-    })
+    });
     callback(null, response);
   }
 };
