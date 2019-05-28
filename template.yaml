@@ -30,6 +30,7 @@ Globals:
       Variables:
         S3_BUCKET: !Ref S3BucketName
         DYNAMODB_TABLE: !Ref DynamoDBTableName
+        SNS_TOPIC_ARN: !Ref SnsTopic
 
 Resources:
   UploadFunction:
@@ -90,6 +91,10 @@ Resources:
             - dynamodb:GetItem
             - dynamodb:UpdateItem
             Resource: !GetAtt DynamoDB.Arn
+          - Effect: Allow
+            Action:
+            - SNS:Publish
+            Resource: !Ref SnsTopic
       Events:
         ProcessStream:
           Type: DynamoDB

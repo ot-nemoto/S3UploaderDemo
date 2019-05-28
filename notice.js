@@ -2,6 +2,7 @@
 
 const aws = require('aws-sdk');
 const docClient = new aws.DynamoDB.DocumentClient();
+const sns = new aws.SNS({ apiVersion: '2010-03-31' });
 
 exports.handler = (event, context) => {
 
@@ -13,11 +14,10 @@ exports.handler = (event, context) => {
   console.log(JSON.stringify(event));
 
   for (const record of event.Records) {
-    var params = {
+    var id = record.dynamodb.Keys["Id"]["S"];
+    let params = {
       TableName: process.env.DYNAMODB_TABLE,
-      Key: {
-        "Id": record.dynamodb.Keys["Id"]["S"]
-      }
+      Key: { "Id": id }
     };
     console.log(`params: GetItem: ${JSON.stringify(params)}`);
     docClient.get(params, function(err, data) {
@@ -28,28 +28,38 @@ exports.handler = (event, context) => {
 
         if (data.Item.Status != "processed") return;
 
-
-
-
-        // Update Status
-        var updateParams = {
-          TableName: params.TableName,
-          Key: params.Key,
-          UpdateExpression: "set #status = :status",
-          ExpressionAttributeNames: {
-            "#status": "Status"
-          },
-          ExpressionAttributeValues: {
-            ":status": "notified"
-          },
-          ReturnValues:"UPDATED_NEW"
+        // SNS Publish
+        let params = {
+          Message: 'Notice by S3UploaderDemo',
+          TopicArn: process.env.SNS_TOPIC_ARN
         };
-        console.log(`params: UpdateItem: ${JSON.stringify(updateParams)}`);
-        docClient.update(updateParams, function(err, data) {
+        sns.publish(params, function(err, data) {
           if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+            console.log(err, err.stack);
           } else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+            console.log(JSON.stringify(data));
+
+            // Update Status
+            let params = {
+              TableName: process.env.DYNAMODB_TABLE,
+              Key: { "Id": id },
+              UpdateExpression: "set #status = :status",
+              ExpressionAttributeNames: {
+                "#status": "Status"
+              },
+              ExpressionAttributeValues: {
+                ":status": "notified"
+              },
+              ReturnValues:"UPDATED_NEW"
+            };
+            console.log(`params: UpdateItem: ${JSON.stringify(params)}`);
+            docClient.update(params, function(err, data) {
+              if (err) {
+                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+              } else {
+                console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+              }
+            });
           }
         });
       }
