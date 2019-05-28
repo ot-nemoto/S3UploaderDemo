@@ -17,7 +17,6 @@ Parameters:
     Default: s3-upload-demo-topic
   SnsSubscriptionEndpoint:
     Type: String
-    Default: nemoto@opentone.co.jp
 
 Globals:
   Api:
@@ -134,3 +133,5 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload"
   S3Bucket:
     Value: !Ref S3Bucket
+  SnsSubscriptionEndpoint:
+    Value: !Ref SnsSubscriptionEndpoint
